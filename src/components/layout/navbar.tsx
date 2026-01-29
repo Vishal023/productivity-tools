@@ -43,7 +43,7 @@ export function Navbar() {
 
         <div className="nav-right">
           <a
-            href="https://github.com"
+            href="https://github.com/Vishal023/productivity-tools"
             target="_blank"
             rel="noopener noreferrer"
             className="nav-icon-btn"
