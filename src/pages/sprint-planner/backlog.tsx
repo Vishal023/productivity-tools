@@ -1,13 +1,15 @@
 import { useState, useRef, type FormEvent } from 'react'
 import { useSprintPlannerStore, useCurrentSprint } from '@/store/sprint-planner'
-import { parseTicketId, buildJiraUrl, isJiraTicketFormat, extractJiraId } from '@/lib/calculations'
-import { Plus, X, ExternalLink, Inbox } from 'lucide-react'
+import { buildJiraUrl, isJiraTicketFormat, extractJiraId } from '@/lib/calculations'
+import { Plus, X, ExternalLink, Inbox, Pencil, Check } from 'lucide-react'
 
 export function Backlog() {
   const sprint = useCurrentSprint()
-  const { addToBacklog, removeFromBacklog, assignTicket } = useSprintPlannerStore()
+  const { addToBacklog, updateBacklogTicket, removeFromBacklog, assignTicket } = useSprintPlannerStore()
   const [ticketInput, setTicketInput] = useState('')
   const [ticketSp, setTicketSp] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   if (!sprint) return null
@@ -17,14 +19,11 @@ export function Backlog() {
     const input = ticketInput.trim()
     if (!input) return
 
-    // Check if it's a Jira ticket format
     const jiraId = extractJiraId(input)
     
     if (jiraId) {
-      // It's a Jira ticket - use the Jira ID as both id and display
       addToBacklog(sprint.id, { id: jiraId, sp: parseFloat(ticketSp) || 0 })
     } else {
-      // It's a free-form text - generate ID, store title
       const id = Date.now().toString(36) + Math.random().toString(36).substr(2)
       addToBacklog(sprint.id, { id, title: input, sp: parseFloat(ticketSp) || 0 })
     }
@@ -34,19 +33,37 @@ export function Backlog() {
     inputRef.current?.focus()
   }
 
+  const startEdit = (ticket: { id: string; title?: string }) => {
+    setEditingId(ticket.id)
+    setEditTitle(ticket.title || '')
+  }
+
+  const saveEdit = () => {
+    if (editingId && editTitle.trim()) {
+      updateBacklogTicket(sprint.id, editingId, { title: editTitle.trim() })
+    }
+    setEditingId(null)
+    setEditTitle('')
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditTitle('')
+  }
+
   const totalSp = sprint.backlog.reduce((sum, t) => sum + t.sp, 0)
 
-  // Get display text for a ticket
   const getTicketDisplay = (ticket: { id: string; title?: string }) => {
     return ticket.title || ticket.id
   }
 
-  // Check if ticket should show Jira link
   const shouldShowJiraLink = (ticket: { id: string; title?: string }) => {
-    // If it has a title, the id is generated (not a Jira ID)
     if (ticket.title) return false
-    // Check if the id looks like a Jira ticket
     return isJiraTicketFormat(ticket.id)
+  }
+
+  const needsTitle = (ticket: { id: string; title?: string }) => {
+    return !ticket.title && !isJiraTicketFormat(ticket.id)
   }
 
   return (
@@ -94,20 +111,52 @@ export function Backlog() {
           <div className="backlog-list">
             {sprint.backlog.map(ticket => (
               <div key={ticket.id} className="backlog-item">
-                {shouldShowJiraLink(ticket) ? (
-                  <a
-                    href={buildJiraUrl(ticket.id)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="backlog-ticket-id"
-                  >
-                    {getTicketDisplay(ticket)}
-                    <ExternalLink />
-                  </a>
+                {editingId === ticket.id ? (
+                  <div className="backlog-edit-row">
+                    <input
+                      className="backlog-edit-input"
+                      value={editTitle}
+                      onChange={e => setEditTitle(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') saveEdit()
+                        if (e.key === 'Escape') cancelEdit()
+                      }}
+                      autoFocus
+                    />
+                    <button className="backlog-edit-save" onClick={saveEdit}>
+                      <Check />
+                    </button>
+                    <button className="backlog-edit-cancel" onClick={cancelEdit}>
+                      <X />
+                    </button>
+                  </div>
                 ) : (
-                  <span className="backlog-ticket-title">
-                    {getTicketDisplay(ticket)}
-                  </span>
+                  <>
+                    {shouldShowJiraLink(ticket) ? (
+                      <a
+                        href={buildJiraUrl(ticket.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="backlog-ticket-id"
+                      >
+                        {getTicketDisplay(ticket)}
+                        <ExternalLink />
+                      </a>
+                    ) : (
+                      <span 
+                        className={`backlog-ticket-title ${needsTitle(ticket) ? 'needs-title' : ''}`}
+                        onClick={() => needsTitle(ticket) && startEdit(ticket)}
+                      >
+                        {getTicketDisplay(ticket)}
+                        {needsTitle(ticket) && <Pencil className="edit-hint" />}
+                      </span>
+                    )}
+                    {!needsTitle(ticket) && ticket.title && (
+                      <button className="backlog-edit-btn" onClick={() => startEdit(ticket)}>
+                        <Pencil />
+                      </button>
+                    )}
+                  </>
                 )}
                 <span className="backlog-ticket-sp">{ticket.sp}</span>
                 <select 

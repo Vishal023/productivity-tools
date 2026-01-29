@@ -1641,6 +1641,100 @@ tr:hover .table-remove-btn {
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.backlog-ticket-title.needs-title {
+  color: var(--muted-foreground);
+  font-style: italic;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.backlog-ticket-title.needs-title:hover {
+  color: var(--ring);
+}
+
+.backlog-ticket-title .edit-hint {
+  width: 12px;
+  height: 12px;
+  opacity: 0.5;
+}
+
+.backlog-edit-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.backlog-item:hover .backlog-edit-btn {
+  opacity: 1;
+}
+
+.backlog-edit-btn:hover {
+  color: var(--ring);
+}
+
+.backlog-edit-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+.backlog-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.backlog-edit-input {
+  flex: 1;
+  background: var(--background);
+  border: 1px solid var(--ring);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--foreground);
+  outline: none;
+}
+
+.backlog-edit-save,
+.backlog-edit-cancel {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.backlog-edit-save {
+  color: #10b981;
+}
+
+.backlog-edit-save:hover {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.backlog-edit-cancel {
+  color: var(--muted-foreground);
+}
+
+.backlog-edit-cancel:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.backlog-edit-save svg,
+.backlog-edit-cancel svg {
+  width: 14px;
+  height: 14px;
 }
 
 .backlog-ticket-sp {

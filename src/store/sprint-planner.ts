@@ -34,6 +34,7 @@ interface SprintPlannerActions {
   
   // Ticket actions
   addToBacklog: (sprintId: string, ticket: JiraTicket) => void
+  updateBacklogTicket: (sprintId: string, ticketId: string, updates: Partial<JiraTicket>) => void
   removeFromBacklog: (sprintId: string, ticketId: string) => void
   assignTicket: (sprintId: string, ticketId: string, memberId: string) => void
   unassignTicket: (sprintId: string, memberId: string, ticketId: string) => void
@@ -307,6 +308,25 @@ export const useSprintPlannerStore = create<SprintPlannerStore>()(
             [sprintId]: {
               ...sprint,
               backlog: [...sprint.backlog, ticket]
+            }
+          }
+        }
+      })
+    },
+
+    updateBacklogTicket: (sprintId, ticketId, updates) => {
+      set(state => {
+        const sprint = state.sprints[sprintId]
+        if (!sprint) return state
+
+        return {
+          sprints: {
+            ...state.sprints,
+            [sprintId]: {
+              ...sprint,
+              backlog: sprint.backlog.map(t => 
+                t.id === ticketId ? { ...t, ...updates } : t
+              )
             }
           }
         }
