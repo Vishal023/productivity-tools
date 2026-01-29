@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { useSprintPlannerStore, useCurrentRelease } from '@/store/sprint-planner'
 import { AlertDialog } from '@/components/confirm-dialog'
-import { X, ChevronRight, ChevronLeft, Calendar, Users } from 'lucide-react'
+import { X, ChevronRight, ChevronLeft, Calendar, Users, ListTodo, Plus, Trash2 } from 'lucide-react'
 import { getInitials } from '@/lib/calculations'
-import type { SprintMember } from '@/types'
+import type { SprintMember, JiraTicket } from '@/types'
 
 interface NewSprintDialogProps {
   open: boolean
@@ -12,7 +12,7 @@ interface NewSprintDialogProps {
   sprintNumber: number
 }
 
-type Step = 'details' | 'capacity'
+type Step = 'details' | 'capacity' | 'backlog'
 
 interface MemberCapacity {
   id: string
@@ -21,8 +21,14 @@ interface MemberCapacity {
   nonJira: number
 }
 
+interface BacklogItem {
+  id: string
+  title: string
+  sp: number
+}
+
 export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewSprintDialogProps) {
-  const { team, createSprint } = useSprintPlannerStore()
+  const { team, createSprint, addToBacklog } = useSprintPlannerStore()
   const release = useCurrentRelease()
   
   const defaultName = release ? `${release.name} - Sprint ${sprintNumber}` : `Sprint ${sprintNumber}`
@@ -38,6 +44,7 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
   const [holidays, setHolidays] = useState('0')
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set(team.map(m => m.id)))
   const [memberCapacities, setMemberCapacities] = useState<MemberCapacity[]>([])
+  const [backlogItems, setBacklogItems] = useState<BacklogItem[]>([])
   const [showAlert, setShowAlert] = useState(false)
 
   useEffect(() => {
@@ -47,6 +54,7 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
       setSelectedMembers(new Set(team.map(m => m.id)))
       setStep('details')
       setMemberCapacities([])
+      setBacklogItems([])
       setHolidays('0')
     }
   }, [open, release, sprintNumber, team])
@@ -73,6 +81,10 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
     setStep('capacity')
   }
 
+  const handleCapacityNext = () => {
+    setStep('backlog')
+  }
+
   const handleCreate = () => {
     const defaultCap = parseFloat(capacity) || 10
     const teamHolidays = parseFloat(holidays) || 0
@@ -90,6 +102,7 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
       }
     })
 
+    // Create sprint first
     createSprint({
       releaseId,
       name,
@@ -100,8 +113,30 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
       members
     })
 
+    // Add backlog items to the newly created sprint
+    // The sprint will be set as current after creation
+    const state = useSprintPlannerStore.getState()
+    const sprintId = state.currentSprintId
+    if (sprintId && backlogItems.length > 0) {
+      backlogItems.forEach(item => {
+        addToBacklog(sprintId, { id: item.id || item.title, sp: item.sp })
+      })
+    }
+
     onClose()
     setName('')
+  }
+
+  const addBacklogItem = (item: BacklogItem) => {
+    setBacklogItems(prev => [...prev, item])
+  }
+
+  const removeBacklogItem = (id: string) => {
+    setBacklogItems(prev => prev.filter(item => item.id !== id))
+  }
+
+  const updateBacklogItem = (id: string, updates: Partial<BacklogItem>) => {
+    setBacklogItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item))
   }
 
   const toggleMember = (id: string) => {
@@ -120,22 +155,32 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
     )
   }
 
+  const getStepTitle = () => {
+    switch (step) {
+      case 'details': return 'Create Sprint'
+      case 'capacity': return 'Set Capacity'
+      case 'backlog': return 'Add Backlog Items'
+    }
+  }
+
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
             <div className="modal-header-content">
-              <h3 className="modal-title">
-                {step === 'details' ? 'Create Sprint' : 'Set Capacity'}
-              </h3>
+              <h3 className="modal-title">{getStepTitle()}</h3>
               <div className="modal-steps">
                 <span className={`modal-step ${step === 'details' ? 'active' : 'completed'}`}>
                   <Calendar /> Details
                 </span>
                 <ChevronRight className="modal-step-arrow" />
-                <span className={`modal-step ${step === 'capacity' ? 'active' : ''}`}>
+                <span className={`modal-step ${step === 'capacity' ? 'active' : step === 'backlog' ? 'completed' : ''}`}>
                   <Users /> Capacity
+                </span>
+                <ChevronRight className="modal-step-arrow" />
+                <span className={`modal-step ${step === 'backlog' ? 'active' : ''}`}>
+                  <ListTodo /> Backlog
                 </span>
               </div>
             </div>
@@ -144,7 +189,7 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
             </button>
           </div>
 
-          {step === 'details' ? (
+          {step === 'details' && (
             <DetailsStep
               name={name}
               setName={setName}
@@ -164,13 +209,26 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
               onNext={handleDetailsNext}
               onCancel={onClose}
             />
-          ) : (
+          )}
+
+          {step === 'capacity' && (
             <CapacityStep
               memberCapacities={memberCapacities}
               holidays={holidays}
               setHolidays={setHolidays}
               updateMemberCapacity={updateMemberCapacity}
               onBack={() => setStep('details')}
+              onNext={handleCapacityNext}
+            />
+          )}
+
+          {step === 'backlog' && (
+            <BacklogStep
+              backlogItems={backlogItems}
+              onAdd={addBacklogItem}
+              onRemove={removeBacklogItem}
+              onUpdate={updateBacklogItem}
+              onBack={() => setStep('capacity')}
               onCreate={handleCreate}
             />
           )}
@@ -329,14 +387,14 @@ function CapacityStep({
   setHolidays,
   updateMemberCapacity,
   onBack,
-  onCreate
+  onNext
 }: {
   memberCapacities: MemberCapacity[]
   holidays: string
   setHolidays: (v: string) => void
   updateMemberCapacity: (id: string, field: 'leaves' | 'nonJira', value: number) => void
   onBack: () => void
-  onCreate: () => void
+  onNext: () => void
 }) {
   return (
     <>
@@ -401,8 +459,121 @@ function CapacityStep({
           <ChevronLeft style={{ width: '16px', height: '16px' }} />
           Back
         </button>
+        <button type="button" className="btn btn-primary" onClick={onNext}>
+          Next: Add Backlog
+          <ChevronRight style={{ width: '16px', height: '16px' }} />
+        </button>
+      </div>
+    </>
+  )
+}
+
+function BacklogStep({
+  backlogItems,
+  onAdd,
+  onRemove,
+  onUpdate,
+  onBack,
+  onCreate
+}: {
+  backlogItems: BacklogItem[]
+  onAdd: (item: BacklogItem) => void
+  onRemove: (id: string) => void
+  onUpdate: (id: string, updates: Partial<BacklogItem>) => void
+  onBack: () => void
+  onCreate: () => void
+}) {
+  const [newTitle, setNewTitle] = useState('')
+  const [newSp, setNewSp] = useState('')
+
+  const handleAdd = (e: FormEvent) => {
+    e.preventDefault()
+    if (!newTitle.trim()) return
+    
+    const id = Date.now().toString(36) + Math.random().toString(36).substr(2)
+    onAdd({
+      id,
+      title: newTitle.trim(),
+      sp: parseFloat(newSp) || 0
+    })
+    setNewTitle('')
+    setNewSp('')
+  }
+
+  const totalSp = backlogItems.reduce((sum, item) => sum + item.sp, 0)
+
+  return (
+    <>
+      <div className="modal-body">
+        <p className="backlog-intro">
+          Add items you plan to deliver in this sprint. You can add more later.
+        </p>
+
+        <form className="backlog-add-form" onSubmit={handleAdd}>
+          <input
+            className="input"
+            placeholder="Ticket ID or description (e.g., PROJ-123 or 'Setup CI/CD')"
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            autoFocus
+          />
+          <input
+            type="number"
+            className="input input-mono backlog-sp-input"
+            placeholder="SP"
+            value={newSp}
+            onChange={e => setNewSp(e.target.value)}
+            min="0"
+            step="any"
+          />
+          <button type="submit" className="btn btn-primary" disabled={!newTitle.trim()}>
+            <Plus style={{ width: '16px', height: '16px' }} />
+            Add
+          </button>
+        </form>
+
+        {backlogItems.length > 0 ? (
+          <div className="backlog-items-list">
+            {backlogItems.map(item => (
+              <div key={item.id} className="backlog-item-row">
+                <span className="backlog-item-title">{item.title}</span>
+                <input
+                  type="number"
+                  className="input input-mono backlog-item-sp"
+                  value={item.sp}
+                  onChange={e => onUpdate(item.id, { sp: parseFloat(e.target.value) || 0 })}
+                  min="0"
+                  step="any"
+                />
+                <span className="backlog-item-sp-label">SP</span>
+                <button 
+                  className="btn btn-ghost btn-sm backlog-item-remove"
+                  onClick={() => onRemove(item.id)}
+                >
+                  <Trash2 style={{ width: '14px', height: '14px' }} />
+                </button>
+              </div>
+            ))}
+            <div className="backlog-items-total">
+              <span>Total</span>
+              <span className="backlog-total-sp">{totalSp} SP</span>
+            </div>
+          </div>
+        ) : (
+          <div className="backlog-empty">
+            <p>No items added yet. You can skip this step and add items later.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="modal-footer">
+        <button type="button" className="btn btn-secondary" onClick={onBack}>
+          <ChevronLeft style={{ width: '16px', height: '16px' }} />
+          Back
+        </button>
         <button type="button" className="btn btn-primary" onClick={onCreate}>
           Create Sprint
+          {backlogItems.length > 0 && ` (${backlogItems.length} items)`}
         </button>
       </div>
     </>

@@ -3326,3 +3326,98 @@ tr:hover .table-remove-btn {
     transform: rotate(360deg);
   }
 }
+
+/* Backlog Step in Sprint Creation */
+.backlog-intro {
+  font-size: 14px;
+  color: var(--muted-foreground);
+  margin-bottom: 16px;
+}
+
+.backlog-add-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.backlog-add-form .input:first-child {
+  flex: 1;
+}
+
+.backlog-sp-input {
+  width: 70px;
+  text-align: center;
+}
+
+.backlog-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.backlog-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--secondary);
+  border-radius: 8px;
+}
+
+.backlog-item-title {
+  flex: 1;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.backlog-item-sp {
+  width: 50px;
+  height: 30px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.backlog-item-sp-label {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.backlog-item-remove {
+  padding: 4px;
+  color: var(--muted-foreground);
+}
+
+.backlog-item-remove:hover {
+  color: #ef4444;
+}
+
+.backlog-items-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.backlog-total-sp {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--ring);
+}
+
+.backlog-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  border-radius: 8px;
+  font-size: 13px;
+}
