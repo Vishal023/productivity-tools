@@ -25,7 +25,11 @@ const KEYS = {
  * Team Repository Implementation
  */
 class TeamRepository implements ITeamRepository {
-  constructor(private storage: IStorageAdapter) {}
+  private storage: IStorageAdapter
+  
+  constructor(storage: IStorageAdapter) {
+    this.storage = storage
+  }
 
   async getTeamName(): Promise<string> {
     return (await this.storage.get<string>(KEYS.TEAM_NAME)) || ''
@@ -86,7 +90,11 @@ class TeamRepository implements ITeamRepository {
  * Release Repository Implementation
  */
 class ReleaseRepository implements IReleaseRepository {
-  constructor(private storage: IStorageAdapter) {}
+  private storage: IStorageAdapter
+  
+  constructor(storage: IStorageAdapter) {
+    this.storage = storage
+  }
 
   async getReleases(): Promise<Record<string, Release>> {
     return (await this.storage.get<Record<string, Release>>(KEYS.RELEASES)) || {}
@@ -167,7 +175,11 @@ class ReleaseRepository implements IReleaseRepository {
  * Sprint Repository Implementation
  */
 class SprintRepository implements ISprintRepository {
-  constructor(private storage: IStorageAdapter) {}
+  private storage: IStorageAdapter
+  
+  constructor(storage: IStorageAdapter) {
+    this.storage = storage
+  }
 
   async getSprints(): Promise<Record<string, Sprint>> {
     return (await this.storage.get<Record<string, Sprint>>(KEYS.SPRINTS)) || {}
@@ -228,7 +240,11 @@ class SprintRepository implements ISprintRepository {
  * Session Repository Implementation
  */
 class SessionRepository implements ISessionRepository {
-  constructor(private storage: IStorageAdapter) {}
+  private storage: IStorageAdapter
+  
+  constructor(storage: IStorageAdapter) {
+    this.storage = storage
+  }
 
   async getCurrentReleaseId(): Promise<string | null> {
     return await this.storage.get<string>(KEYS.CURRENT_RELEASE_ID)
@@ -274,8 +290,10 @@ export class SprintPlannerRepository implements ISprintPlannerRepository {
   public releases: IReleaseRepository
   public sprints: ISprintRepository
   public session: ISessionRepository
+  private storage: IStorageAdapter
 
-  constructor(private storage: IStorageAdapter) {
+  constructor(storage: IStorageAdapter) {
+    this.storage = storage
     this.team = new TeamRepository(storage)
     this.releases = new ReleaseRepository(storage)
     this.sprints = new SprintRepository(storage)

@@ -3,7 +3,6 @@ import { useSprintPlannerStore } from '@/store/sprint-planner'
 import { TeamView } from './team-view'
 import { ReleaseView } from './release-view'
 import { Users, Package } from 'lucide-react'
-import type { SprintPlannerTab } from '@/types'
 
 type Tab = 'team' | 'releases'
 

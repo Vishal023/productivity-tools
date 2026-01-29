@@ -163,7 +163,6 @@ export function ReleaseView({ onManageTeam }: Props) {
       {currentRelease && (
         <>
           <ReleaseMetrics 
-            release={currentRelease} 
             metrics={calculateReleaseMetrics(currentRelease, sprints)} 
           />
           

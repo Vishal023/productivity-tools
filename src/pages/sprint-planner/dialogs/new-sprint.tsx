@@ -3,7 +3,7 @@ import { useSprintPlannerStore, useCurrentRelease } from '@/store/sprint-planner
 import { AlertDialog } from '@/components/confirm-dialog'
 import { X, ChevronRight, ChevronLeft, Calendar, Users, ListTodo, Plus, Trash2 } from 'lucide-react'
 import { getInitials, extractJiraId } from '@/lib/calculations'
-import type { SprintMember, JiraTicket } from '@/types'
+import type { SprintMember } from '@/types'
 
 interface NewSprintDialogProps {
   open: boolean

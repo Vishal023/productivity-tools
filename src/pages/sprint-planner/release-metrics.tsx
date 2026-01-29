@@ -1,5 +1,3 @@
-import type { Release } from '@/types'
-
 interface ReleaseMetricsData {
   totalAvailable: number
   totalActualAvailable: number
@@ -13,11 +11,10 @@ interface ReleaseMetricsData {
 }
 
 interface Props {
-  release: Release
   metrics: ReleaseMetricsData
 }
 
-export function ReleaseMetrics({ release, metrics }: Props) {
+export function ReleaseMetrics({ metrics }: Props) {
   if (metrics.sprintCount === 0) return null
 
   return (

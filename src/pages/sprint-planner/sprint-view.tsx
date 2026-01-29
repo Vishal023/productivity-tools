@@ -14,7 +14,7 @@ interface SprintViewProps {
   onManageTeam: () => void
 }
 
-export function SprintView({ releaseId, onManageTeam }: SprintViewProps) {
+export function SprintView({ releaseId: _releaseId, onManageTeam: _onManageTeam }: SprintViewProps) {
   const { deleteSprint } = useSprintPlannerStore()
   const sprint = useCurrentSprint()
   const [showEditDialog, setShowEditDialog] = useState(false)

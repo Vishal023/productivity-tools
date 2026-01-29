@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useSprintPlannerStore, useCurrentSprint } from '@/store/sprint-planner'
-import { getInitials, buildJiraUrl, parseTicketId, calculatePlannedSp, calculateCompletedSp, calculateAdhocSp, isJiraTicketFormat, extractJiraId } from '@/lib/calculations'
+import { getInitials, buildJiraUrl, calculatePlannedSp, calculateCompletedSp, calculateAdhocSp, isJiraTicketFormat, extractJiraId } from '@/lib/calculations'
 import { Plus, ExternalLink, Check, Zap } from 'lucide-react'
 
 export function AssignedTickets() {
