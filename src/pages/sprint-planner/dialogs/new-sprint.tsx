@@ -2,7 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { useSprintPlannerStore, useCurrentRelease } from '@/store/sprint-planner'
 import { AlertDialog } from '@/components/confirm-dialog'
 import { X, ChevronRight, ChevronLeft, Calendar, Users, ListTodo, Plus, Trash2 } from 'lucide-react'
-import { getInitials } from '@/lib/calculations'
+import { getInitials, extractJiraId } from '@/lib/calculations'
 import type { SprintMember, JiraTicket } from '@/types'
 
 interface NewSprintDialogProps {
@@ -119,7 +119,13 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
     const sprintId = state.currentSprintId
     if (sprintId && backlogItems.length > 0) {
       backlogItems.forEach(item => {
-        addToBacklog(sprintId, { id: item.id || item.title, sp: item.sp })
+        // Check if the title looks like a Jira ticket
+        const jiraId = extractJiraId(item.title)
+        if (jiraId) {
+          addToBacklog(sprintId, { id: jiraId, sp: item.sp })
+        } else {
+          addToBacklog(sprintId, { id: item.id, title: item.title, sp: item.sp })
+        }
       })
     }
 

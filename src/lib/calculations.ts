@@ -4,13 +4,33 @@ export const JIRA_BASE_URL = 'https://celigo.atlassian.net/browse/'
 
 export const buildJiraUrl = (ticketId: string) => `${JIRA_BASE_URL}${ticketId}`
 
-export const parseTicketId = (input: string): string | null => {
+// Check if a string looks like a Jira ticket (PROJ-123 format)
+export const isJiraTicketFormat = (input: string): boolean => {
+  const cleaned = input.trim().toUpperCase()
+  return /^[A-Z]+-\d+$/.test(cleaned) || /([A-Z]+-\d+)/.test(cleaned)
+}
+
+// Extract Jira ticket ID from input, or return null if not a Jira format
+export const extractJiraId = (input: string): string | null => {
   const cleaned = input.trim().toUpperCase()
   const urlMatch = cleaned.match(/([A-Z]+-\d+)/)
   if (urlMatch) return urlMatch[1]
   const directMatch = cleaned.match(/^[A-Z]+-\d+$/)
   if (directMatch) return cleaned
   return null
+}
+
+// Parse ticket input - returns the ID (Jira format) or the raw text
+export const parseTicketId = (input: string): string | null => {
+  const trimmed = input.trim()
+  if (!trimmed) return null
+  
+  // Try to extract Jira ID first
+  const jiraId = extractJiraId(trimmed)
+  if (jiraId) return jiraId
+  
+  // Otherwise return the raw text as-is (for non-Jira items)
+  return trimmed
 }
 
 export const getInitials = (name: string) => 

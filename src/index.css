@@ -1632,6 +1632,17 @@ tr:hover .table-remove-btn {
   opacity: 0.5;
 }
 
+.backlog-ticket-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
 .backlog-ticket-sp {
   display: flex;
   align-items: center;
@@ -1890,6 +1901,22 @@ tr:hover .table-remove-btn {
   width: 12px;
   height: 12px;
   opacity: 0.5;
+}
+
+.ticket-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.ticket-row.completed .ticket-title {
+  color: #10b981;
+  text-decoration: line-through;
+  opacity: 0.7;
 }
 
 .ticket-adhoc-badge {

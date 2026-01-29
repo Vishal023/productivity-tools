@@ -16,6 +16,7 @@ export interface SprintMember {
 
 export interface JiraTicket {
   id: string
+  title?: string  // Display name - for non-Jira tickets or descriptions
   sp: number
   isAdhoc?: boolean
   completed?: boolean

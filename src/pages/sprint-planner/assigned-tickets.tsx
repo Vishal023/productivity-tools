@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useSprintPlannerStore, useCurrentSprint } from '@/store/sprint-planner'
-import { getInitials, buildJiraUrl, parseTicketId, calculatePlannedSp, calculateCompletedSp, calculateAdhocSp } from '@/lib/calculations'
+import { getInitials, buildJiraUrl, parseTicketId, calculatePlannedSp, calculateCompletedSp, calculateAdhocSp, isJiraTicketFormat, extractJiraId } from '@/lib/calculations'
 import { Plus, ExternalLink, Check, Zap } from 'lucide-react'
 
 export function AssignedTickets() {
@@ -101,12 +101,15 @@ function TicketRow({
   onUnassign,
   onRemove
 }: { 
-  ticket: { id: string; sp: number; completed?: boolean; isAdhoc?: boolean }
+  ticket: { id: string; title?: string; sp: number; completed?: boolean; isAdhoc?: boolean }
   onToggleComplete: () => void
   onToggleAdhoc: () => void
   onUnassign: () => void
   onRemove: () => void
 }) {
+  const displayText = ticket.title || ticket.id
+  const isJiraTicket = !ticket.title && isJiraTicketFormat(ticket.id)
+
   return (
     <div className={`ticket-row ${ticket.completed ? 'completed' : ''}`}>
       <button
@@ -117,15 +120,19 @@ function TicketRow({
         {ticket.completed && <Check />}
       </button>
       
-      <a
-        href={buildJiraUrl(ticket.id)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="ticket-id"
-      >
-        {ticket.id}
-        <ExternalLink />
-      </a>
+      {isJiraTicket ? (
+        <a
+          href={buildJiraUrl(ticket.id)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ticket-id"
+        >
+          {displayText}
+          <ExternalLink />
+        </a>
+      ) : (
+        <span className="ticket-title">{displayText}</span>
+      )}
 
       <span className="ticket-sp">{ticket.sp} SP</span>
 
@@ -162,27 +169,35 @@ function AddTicketInline({
   onAdd, 
   onCancel 
 }: { 
-  onAdd: (ticket: { id: string; sp: number; isAdhoc?: boolean }) => void
+  onAdd: (ticket: { id: string; title?: string; sp: number; isAdhoc?: boolean }) => void
   onCancel: () => void
 }) {
-  const [ticketId, setTicketId] = useState('')
+  const [ticketInput, setTicketInput] = useState('')
   const [ticketSp, setTicketSp] = useState('')
   const [isAdhoc, setIsAdhoc] = useState(false)
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    const parsed = parseTicketId(ticketId)
-    if (!parsed) return
+    const input = ticketInput.trim()
+    if (!input) return
 
-    onAdd({ id: parsed, sp: parseFloat(ticketSp) || 0, isAdhoc })
+    // Check if it's a Jira ticket format
+    const jiraId = extractJiraId(input)
+    
+    if (jiraId) {
+      onAdd({ id: jiraId, sp: parseFloat(ticketSp) || 0, isAdhoc })
+    } else {
+      const id = Date.now().toString(36) + Math.random().toString(36).substr(2)
+      onAdd({ id, title: input, sp: parseFloat(ticketSp) || 0, isAdhoc })
+    }
   }
 
   return (
     <form className="add-ticket-inline" onSubmit={handleSubmit}>
       <input
-        placeholder="PROJ-123"
-        value={ticketId}
-        onChange={e => setTicketId(e.target.value)}
+        placeholder="PROJ-123 or description"
+        value={ticketInput}
+        onChange={e => setTicketInput(e.target.value)}
         className="input"
         autoFocus
       />
@@ -203,7 +218,7 @@ function AddTicketInline({
       >
         <Zap />
       </button>
-      <button type="submit" className="btn btn-primary btn-sm" disabled={!ticketId.trim()}>
+      <button type="submit" className="btn btn-primary btn-sm" disabled={!ticketInput.trim()}>
         Add
       </button>
       <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
