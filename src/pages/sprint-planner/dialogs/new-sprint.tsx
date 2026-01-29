@@ -163,6 +163,23 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
     }
   }
 
+  // Calculate total available capacity from capacity step data
+  const calculateTotalAvailable = () => {
+    const defaultCap = parseFloat(capacity) || 10
+    const teamHolidays = parseFloat(holidays) || 0
+    const adhocReserve = parseFloat(adhoc) || 15
+
+    let totalAvailable = 0
+    memberCapacities.forEach(mc => {
+      const tm = team.find(m => m.id === mc.id)
+      const memberCap = tm?.defaultCapacity || defaultCap
+      const raw = memberCap - mc.leaves - teamHolidays - mc.nonJira
+      const available = raw * (1 - adhocReserve / 100)
+      totalAvailable += Math.max(0, available)
+    })
+    return totalAvailable
+  }
+
   return (
     <>
       <div className="modal-overlay" onClick={onClose}>
@@ -225,6 +242,8 @@ export function NewSprintDialog({ open, onClose, releaseId, sprintNumber }: NewS
           {step === 'backlog' && (
             <BacklogStep
               backlogItems={backlogItems}
+              totalAvailable={calculateTotalAvailable()}
+              memberCount={memberCapacities.length}
               onAdd={addBacklogItem}
               onRemove={removeBacklogItem}
               onUpdate={updateBacklogItem}
@@ -470,6 +489,8 @@ function CapacityStep({
 
 function BacklogStep({
   backlogItems,
+  totalAvailable,
+  memberCount,
   onAdd,
   onRemove,
   onUpdate,
@@ -477,6 +498,8 @@ function BacklogStep({
   onCreate
 }: {
   backlogItems: BacklogItem[]
+  totalAvailable: number
+  memberCount: number
   onAdd: (item: BacklogItem) => void
   onRemove: (id: string) => void
   onUpdate: (id: string, updates: Partial<BacklogItem>) => void
@@ -501,12 +524,79 @@ function BacklogStep({
   }
 
   const totalSp = backlogItems.reduce((sum, item) => sum + item.sp, 0)
+  const utilizationPercent = totalAvailable > 0 ? (totalSp / totalAvailable) * 100 : 0
+  const remaining = totalAvailable - totalSp
+
+  const getUtilizationStatus = () => {
+    if (utilizationPercent < 85) return { label: 'Under-utilized', color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.1)' }
+    if (utilizationPercent <= 100) return { label: 'Balanced', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' }
+    return { label: 'Over-committed', color: '#ec4899', bg: 'rgba(236, 72, 153, 0.1)' }
+  }
+
+  const status = getUtilizationStatus()
 
   return (
     <>
       <div className="modal-body">
+        {/* Capacity Summary Card */}
+        <div className="backlog-capacity-card">
+          <div className="backlog-capacity-header">
+            <span className="backlog-capacity-title">Team Capacity</span>
+            <span className="backlog-capacity-members">{memberCount} members</span>
+          </div>
+          
+          <div className="backlog-capacity-bar-wrapper">
+            <div className="backlog-capacity-bar">
+              <div 
+                className="backlog-capacity-bar-fill"
+                style={{ 
+                  width: `${Math.min(utilizationPercent, 100)}%`,
+                  background: status.color
+                }}
+              />
+              {utilizationPercent > 100 && (
+                <div 
+                  className="backlog-capacity-bar-overflow"
+                  style={{ width: `${Math.min(utilizationPercent - 100, 20)}%` }}
+                />
+              )}
+            </div>
+            <div className="backlog-capacity-labels">
+              <span>0</span>
+              <span className="backlog-capacity-target">Target: {totalAvailable.toFixed(1)} SP</span>
+              <span>{totalAvailable.toFixed(0)}</span>
+            </div>
+          </div>
+
+          <div className="backlog-capacity-stats">
+            <div className="backlog-capacity-stat">
+              <span className="backlog-stat-value">{totalAvailable.toFixed(1)}</span>
+              <span className="backlog-stat-label">Available SP</span>
+            </div>
+            <div className="backlog-capacity-stat">
+              <span className="backlog-stat-value" style={{ color: status.color }}>{totalSp.toFixed(1)}</span>
+              <span className="backlog-stat-label">Planned SP</span>
+            </div>
+            <div className="backlog-capacity-stat">
+              <span className="backlog-stat-value" style={{ color: remaining >= 0 ? '#10b981' : '#ec4899' }}>
+                {remaining >= 0 ? remaining.toFixed(1) : `+${Math.abs(remaining).toFixed(1)}`}
+              </span>
+              <span className="backlog-stat-label">{remaining >= 0 ? 'Remaining' : 'Over'}</span>
+            </div>
+            <div className="backlog-capacity-stat">
+              <span 
+                className="backlog-stat-badge"
+                style={{ background: status.bg, color: status.color }}
+              >
+                {utilizationPercent.toFixed(0)}%
+              </span>
+              <span className="backlog-stat-label">{status.label}</span>
+            </div>
+          </div>
+        </div>
+
         <p className="backlog-intro">
-          Add items you plan to deliver in this sprint. You can add more later.
+          Add items you plan to deliver in this sprint. Aim for 85-100% utilization.
         </p>
 
         <form className="backlog-add-form" onSubmit={handleAdd}>

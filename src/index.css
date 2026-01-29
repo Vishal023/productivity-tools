@@ -3421,3 +3421,101 @@ tr:hover .table-remove-btn {
   border-radius: 8px;
   font-size: 13px;
 }
+
+/* Backlog Capacity Card */
+.backlog-capacity-card {
+  background: var(--secondary);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.backlog-capacity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.backlog-capacity-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.backlog-capacity-members {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.backlog-capacity-bar-wrapper {
+  margin-bottom: 16px;
+}
+
+.backlog-capacity-bar {
+  height: 8px;
+  background: var(--background);
+  border-radius: 4px;
+  overflow: visible;
+  position: relative;
+}
+
+.backlog-capacity-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.backlog-capacity-bar-overflow {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background: #ec4899;
+  border-radius: 0 4px 4px 0;
+  transform: translateX(100%);
+}
+
+.backlog-capacity-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+
+.backlog-capacity-target {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.backlog-capacity-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.backlog-capacity-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.backlog-stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.backlog-stat-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.backlog-stat-label {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
