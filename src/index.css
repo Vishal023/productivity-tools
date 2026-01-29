@@ -2963,7 +2963,8 @@ tr:hover .table-remove-btn {
 
 /* Modal Large */
 .modal-lg {
-  max-width: 700px;
+  max-width: 800px;
+  width: 90%;
 }
 
 /* Release List */
@@ -3478,12 +3479,18 @@ tr:hover .table-remove-btn {
   margin-bottom: 16px;
 }
 
+.backlog-capacity-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
 .backlog-capacity-bar {
   height: 8px;
   background: var(--background);
   border-radius: 4px;
-  overflow: visible;
-  position: relative;
+  overflow: hidden;
+  flex: 1;
 }
 
 .backlog-capacity-bar-fill {
@@ -3493,13 +3500,10 @@ tr:hover .table-remove-btn {
 }
 
 .backlog-capacity-bar-overflow {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
+  height: 8px;
   background: #ec4899;
   border-radius: 0 4px 4px 0;
-  transform: translateX(100%);
+  flex-shrink: 0;
 }
 
 .backlog-capacity-labels {
@@ -3508,6 +3512,7 @@ tr:hover .table-remove-btn {
   margin-top: 6px;
   font-size: 10px;
   color: var(--muted-foreground);
+  padding-right: 20px;
 }
 
 .backlog-capacity-target {

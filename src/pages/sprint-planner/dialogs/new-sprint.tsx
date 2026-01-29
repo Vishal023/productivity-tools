@@ -552,25 +552,27 @@ function BacklogStep({
           </div>
           
           <div className="backlog-capacity-bar-wrapper">
-            <div className="backlog-capacity-bar">
-              <div 
-                className="backlog-capacity-bar-fill"
-                style={{ 
-                  width: `${Math.min(utilizationPercent, 100)}%`,
-                  background: status.color
-                }}
-              />
+            <div className="backlog-capacity-bar-container">
+              <div className="backlog-capacity-bar">
+                <div 
+                  className="backlog-capacity-bar-fill"
+                  style={{ 
+                    width: `${Math.min(utilizationPercent, 100)}%`,
+                    background: status.color
+                  }}
+                />
+              </div>
               {utilizationPercent > 100 && (
                 <div 
                   className="backlog-capacity-bar-overflow"
-                  style={{ width: `${Math.min(utilizationPercent - 100, 20)}%` }}
+                  style={{ width: `${Math.min((utilizationPercent - 100) * 0.2, 20)}px` }}
                 />
               )}
             </div>
             <div className="backlog-capacity-labels">
               <span>0</span>
               <span className="backlog-capacity-target">Target: {totalAvailable.toFixed(1)} SP</span>
-              <span>{totalAvailable.toFixed(0)}</span>
+              <span>{Math.round(totalAvailable)}</span>
             </div>
           </div>
 
