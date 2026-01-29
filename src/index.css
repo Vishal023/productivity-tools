@@ -1002,6 +1002,19 @@ input[type="number"]::-webkit-inner-spin-button {
   text-align: center;
 }
 
+.empty-state h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: var(--muted-foreground);
+  margin-bottom: 24px;
+  max-width: 300px;
+}
+
 .empty-state-icon {
   width: 64px;
   height: 64px;
